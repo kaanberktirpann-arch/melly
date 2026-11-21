@@ -1,0 +1,819 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Melly">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#ffffff">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-180.png">
+<title>Melly</title>
+<!-- Melly - Velayet dosya takip uygulamasi -->
+<style>
+:root{
+  --bg:#f6f5f2;--card:#ffffff;--line:#e4e2dc;--line2:#cfccc4;--tx:#1f1e1b;--tx2:#6b6960;--tx3:#9a978e;
+  --acc:#7a4fd6;--accbg:#efe9fc;--acctx:#4b2c96;
+  --red:#c93434;--redbg:#fcebeb;--redtx:#8f2020;
+  --red2bg:#c93434;--red2tx:#ffffff;
+  --yel:#b7791a;--yelbg:#fbf1dc;--yeltx:#7a4d07;
+  --grn:#3d7a16;--grnbg:#eaf3de;--grntx:#2b560c;
+  --gry:#efede8;--grytx:#5f5e5a;
+  --r:12px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --bg:#161614;--card:#21211e;--line:#34332f;--line2:#4a4944;--tx:#f1efe8;--tx2:#b4b2a9;--tx3:#87857d;
+  --acc:#a48cf0;--accbg:#2e2548;--acctx:#d5c9fa;
+  --red:#f09595;--redbg:#4a1c1c;--redtx:#f7c1c1;
+  --red2bg:#d84545;--red2tx:#ffffff;
+  --yel:#efa94a;--yelbg:#45320f;--yeltx:#fac775;
+  --grn:#97c459;--grnbg:#22330f;--grntx:#c0dd97;
+  --gry:#2c2c29;--grytx:#c9c7be;
+}}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:var(--bg);color:var(--tx);font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;font-size:16px;line-height:1.45}
+body{padding-bottom:calc(74px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:var(--bg);padding:calc(10px + env(safe-area-inset-top)) 16px 8px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--line)}
+header h1{font-size:22px;margin:0;font-weight:600;letter-spacing:.2px}
+header h1 span{color:var(--acc)}
+main{padding:12px 14px;max-width:640px;margin:0 auto}
+nav{position:fixed;left:0;right:0;bottom:0;z-index:6;background:var(--card);border-top:1px solid var(--line);display:flex;padding:6px 0 calc(6px + env(safe-area-inset-bottom))}
+nav button{flex:1;background:none;border:0;color:var(--tx3);font-size:11px;padding:4px 0;display:flex;flex-direction:column;align-items:center;gap:2px;font-family:inherit}
+nav button.on{color:var(--acc)}
+nav svg{width:24px;height:24px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;margin-bottom:10px}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:7px 4px;text-align:center}
+.stat b{display:block;font-size:20px;font-weight:600}
+.stat small{font-size:11px;color:var(--tx2)}
+.stat.r{background:var(--redbg);border-color:transparent;color:var(--redtx)}
+.stat.r small{color:var(--redtx)}
+.chips{display:flex;gap:6px;overflow-x:auto;padding-bottom:8px;margin-bottom:4px;scrollbar-width:none}
+.chip{flex:none;border:1px solid var(--line2);background:var(--card);color:var(--tx2);border-radius:20px;padding:5px 12px;font-size:13px;font-family:inherit}
+.chip.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.file{background:var(--card);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;margin-bottom:8px;cursor:pointer}
+.file.lv-cokacil,.file.lv-gecti{border:2px solid var(--red)}
+.file.lv-kirmizi{border-color:var(--red)}
+.file.lv-sari{border-color:var(--yel)}
+.ftop{display:flex;justify-content:space-between;align-items:baseline;gap:8px}
+.ftop b{font-size:16px;font-weight:600}
+.kalan{font-size:14px;font-weight:600;white-space:nowrap}
+.sub{font-size:13px;color:var(--tx2)}
+.bd{display:inline-block;font-size:12px;padding:2px 8px;border-radius:7px;margin:4px 4px 0 0;background:var(--gry);color:var(--grytx)}
+.bd.r{background:var(--redbg);color:var(--redtx)}
+.bd.rr{background:var(--red2bg);color:var(--red2tx)}
+.bd.y{background:var(--yelbg);color:var(--yeltx)}
+.bd.g{background:var(--grnbg);color:var(--grntx)}
+.bd.a{background:var(--accbg);color:var(--acctx)}
+.c-cokacil,.c-gecti,.c-kirmizi{color:var(--red)}
+.c-sari{color:var(--yel)}
+.c-yesil{color:var(--grn)}
+.c-yok{color:var(--tx3)}
+button.btn{font-family:inherit;font-size:15px;border-radius:10px;padding:10px 14px;border:1px solid var(--line2);background:var(--card);color:var(--tx);cursor:pointer}
+button.btn.p{background:var(--acc);border-color:var(--acc);color:#fff}
+button.btn.d{color:var(--red);border-color:var(--red)}
+button.btn.s{font-size:13px;padding:6px 10px;border-radius:8px}
+button.btn.w{width:100%}
+.row2{display:flex;gap:8px}
+.row2>*{flex:1}
+.fab{position:fixed;right:18px;bottom:calc(84px + env(safe-area-inset-bottom));width:56px;height:56px;border-radius:50%;background:var(--acc);color:#fff;border:0;font-size:30px;line-height:1;z-index:4;box-shadow:0 3px 10px rgba(0,0,0,.25)}
+label.f{display:block;font-size:13px;color:var(--tx2);margin:10px 0 4px}
+input,select,textarea{font-family:inherit;font-size:16px;width:100%;padding:9px 10px;border:1px solid var(--line2);border-radius:9px;background:var(--card);color:var(--tx)}
+input[type=checkbox]{width:auto;transform:scale(1.25);margin-right:8px}
+textarea{min-height:80px;resize:vertical}
+.err{color:var(--red);font-size:13px;margin-top:4px}
+.sheet{position:fixed;inset:0;z-index:20;background:var(--bg);overflow-y:auto;-webkit-overflow-scrolling:touch;padding:0 0 calc(30px + env(safe-area-inset-bottom))}
+.sheet .sh{position:sticky;top:0;background:var(--bg);display:flex;align-items:center;justify-content:space-between;padding:calc(10px + env(safe-area-inset-top)) 14px 10px;border-bottom:1px solid var(--line);z-index:2}
+.sheet .sh h2{font-size:18px;margin:0;font-weight:600}
+.sheet .sb{padding:12px 14px;max-width:640px;margin:0 auto}
+.x{background:none;border:0;color:var(--tx);font-size:28px;line-height:1;padding:0 4px;font-family:inherit}
+h3{font-size:15px;margin:16px 0 6px;font-weight:600}
+.kv{display:flex;justify-content:space-between;padding:3px 0;font-size:14px}
+.kv span:first-child{color:var(--tx2)}
+.log{font-size:13px;color:var(--tx2);border-left:2px solid var(--line2);padding-left:10px}
+.log div{margin-bottom:4px}
+.days{display:flex;gap:5px;margin:10px 0}
+.day{flex:1;text-align:center;border:1px solid var(--line2);border-radius:9px;padding:5px 0;font-size:13px;background:var(--card);color:var(--tx);font-family:inherit}
+.day small{display:block;font-size:11px;color:var(--tx2)}
+.day.on{background:var(--tx);color:var(--bg);border-color:var(--tx)}
+.day.on small{color:var(--bg)}
+.day.off{opacity:.4}
+.slot{display:flex;justify-content:space-between;align-items:center;border:1px solid var(--line);border-radius:10px;padding:11px 12px;margin-bottom:6px;background:var(--card);font-size:15px;width:100%;font-family:inherit;color:var(--tx);text-align:left}
+.slot.free{border-color:var(--acc);cursor:pointer}
+.slot.free span:last-child{color:var(--acc);font-weight:600}
+.slot.busy{color:var(--tx3)}
+.ogle{text-align:center;font-size:12px;color:var(--tx3);padding:2px 0 8px}
+.banner{border-radius:10px;padding:10px 12px;font-size:14px;margin-bottom:10px;background:var(--yelbg);color:var(--yeltx)}
+.banner.r{background:var(--redbg);color:var(--redtx)}
+.banner.a{background:var(--accbg);color:var(--acctx)}
+.banner button{margin-top:6px}
+.toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(150px + env(safe-area-inset-bottom));background:var(--tx);color:var(--bg);padding:9px 16px;border-radius:20px;font-size:14px;z-index:50;max-width:90%;text-align:center}
+.dlg{position:fixed;inset:0;z-index:40;background:rgba(0,0,0,.45);display:flex;align-items:center;justify-content:center;padding:20px}
+.dlg .in{background:var(--card);border-radius:14px;padding:18px;max-width:380px;width:100%}
+.dlg p{margin:0 0 14px}
+.empty{text-align:center;color:var(--tx2);padding:30px 10px}
+.foot{text-align:center;font-size:12px;color:var(--tx3);margin:18px 0 6px}
+.calday{margin-bottom:12px}
+.calday h4{margin:0 0 5px;font-size:14px;font-weight:600}
+.calday h4.today{color:var(--acc)}
+.appt{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:8px 11px;margin-bottom:5px;cursor:pointer}
+.appt b{font-size:15px;min-width:46px}
+.bar{height:8px;border-radius:4px;background:var(--gry);overflow:hidden;margin-top:3px}
+.bar i{display:block;height:100%;background:var(--acc)}
+a{color:var(--acc)}
+.sr{position:absolute;left:-9999px}
+.adm{font-size:13px;color:var(--tx2);font-weight:600;margin-top:1px}
+#kilit{position:fixed;inset:0;z-index:100;background:var(--bg);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:env(safe-area-inset-top) 20px env(safe-area-inset-bottom)}
+#kilit h1{font-size:30px;margin:0 0 6px;font-weight:600}
+#kilit h1 span{color:var(--acc)}
+.noktalar{display:flex;gap:16px;margin:22px 0 10px}
+.noktalar i{width:15px;height:15px;border-radius:50%;border:2px solid var(--tx2);display:block}
+.noktalar i.d{background:var(--tx);border-color:var(--tx)}
+.tus{display:grid;grid-template-columns:repeat(3,76px);gap:14px;margin-top:16px}
+.tus button{width:76px;height:76px;border-radius:50%;border:1px solid var(--line2);background:var(--card);color:var(--tx);font-size:28px;font-family:inherit}
+.tus button.bos{visibility:hidden}
+.tus button.sil{font-size:16px;border:0;background:none}
+.salla{animation:salla .35s}
+@keyframes salla{0%,100%{transform:translateX(0)}25%{transform:translateX(-10px)}75%{transform:translateX(10px)}}
+</style>
+</head>
+<body>
+<header><h1>Mel<span>ly</span></h1><span class="sub" id="hdrSub"></span></header>
+<main id="main"></main>
+<button class="fab" id="fab" onclick="openEdit()" aria-label="Yeni dosya">+</button>
+<nav id="nav">
+  <button data-t="dosyalar" onclick="go('dosyalar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>Dosyalar</button>
+  <button data-t="takvim" onclick="go('takvim')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="4" y="5" width="16" height="16" rx="2"/><path d="M16 3v4M8 3v4M4 11h16"/></svg>Takvim</button>
+  <button data-t="ozet" onclick="go('ozet')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 20V10M10 20V4M16 20v-7M21 20H3"/></svg>Özet</button>
+  <button data-t="ayarlar" onclick="go('ayarlar')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1.1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1.1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>Ayarlar</button>
+</nav>
+<div id="layer"></div>
+<div id="kilit" style="display:none"></div>
+
+<script>
+"use strict";
+const VERSION = "0.6";
+const KEY = "melly_veri_v1";
+
+const DURUMLAR = ["Yeni geldi","Taraflara ulaşılıyor","Randevu verildi","Görüşmeler sürüyor","Tebligat bekleniyor","Kurumdan belge bekleniyor","Rapor yazılıyor","Rapor yüklendi"];
+const TARAF_DURUM = ["Ulaşılmadı","Ulaşılamıyor","Randevu verildi","Görüşüldü","Tebligat çıkarıldı","Gelmedi"];
+const SAATLER = [9,10,11,13,14,15,16];
+const GUN = ["Pazar","Pazartesi","Salı","Çarşamba","Perşembe","Cuma","Cumartesi"];
+const GUNK = ["Paz","Pzt","Sal","Çar","Per","Cum","Cmt"];
+const AY = ["Ocak","Şubat","Mart","Nisan","Mayıs","Haziran","Temmuz","Ağustos","Eylül","Ekim","Kasım","Aralık"];
+
+const TATIL_VARSAYILAN = [
+"2026-01-01 Yılbaşı","2026-03-19 yarım Ramazan Bayramı arifesi","2026-03-20 Ramazan Bayramı","2026-03-21 Ramazan Bayramı","2026-03-22 Ramazan Bayramı",
+"2026-04-23 Ulusal Egemenlik ve Çocuk Bayramı","2026-05-01 Emek ve Dayanışma Günü","2026-05-19 Gençlik ve Spor Bayramı",
+"2026-05-26 yarım Kurban Bayramı arifesi","2026-05-27 Kurban Bayramı","2026-05-28 Kurban Bayramı","2026-05-29 Kurban Bayramı","2026-05-30 Kurban Bayramı",
+"2026-07-15 Demokrasi ve Milli Birlik Günü","2026-08-30 Zafer Bayramı","2026-10-28 yarım Cumhuriyet Bayramı arifesi","2026-10-29 Cumhuriyet Bayramı",
+"2027-01-01 Yılbaşı","2027-03-08 yarım Ramazan Bayramı arifesi (kontrol edin)","2027-03-09 Ramazan Bayramı (kontrol edin)","2027-03-10 Ramazan Bayramı (kontrol edin)","2027-03-11 Ramazan Bayramı (kontrol edin)",
+"2027-04-23 Ulusal Egemenlik ve Çocuk Bayramı","2027-05-01 Emek ve Dayanışma Günü","2027-05-15 yarım Kurban Bayramı arifesi (kontrol edin)","2027-05-16 Kurban Bayramı (kontrol edin)","2027-05-17 Kurban Bayramı (kontrol edin)","2027-05-18 Kurban Bayramı (kontrol edin)","2027-05-19 Kurban Bayramı / Gençlik ve Spor Bayramı",
+"2027-07-15 Demokrasi ve Milli Birlik Günü","2027-08-30 Zafer Bayramı","2027-10-28 yarım Cumhuriyet Bayramı arifesi","2027-10-29 Cumhuriyet Bayramı"
+].join("\n");
+
+const SABLONLAR = [
+ {id:"randevu", ad:"Randevu bilgilendirme (tarafa)", kime:"taraf",
+  metin:"Sayın {ad},\n{mahkeme} {esasNo} esas sayılı dosya kapsamında sosyal inceleme görüşmeniz planlanmıştır.\n\nTarih: {tarih} {gun}\nSaat: {saat}\nYer: {adres}\n\nLütfen kimliğinizle birlikte geliniz. Çocuk(lar)ınızın da görüşmeye katılması gerekmektedir.\n\n{unvan}"},
+ {id:"davet", ad:"Görüşmeye davet / ulaşılamayan taraf", kime:"taraf",
+  metin:"Sayın {ad},\n{mahkeme} {esasNo} esas sayılı dosya kapsamında sosyal inceleme raporu hazırlanabilmesi için sizinle görüşme yapılması gerekmektedir.\n\nRandevu oluşturmak için hafta içi 09:00-17:00 saatleri arasında {telefonum} numaralı telefondan iletişime geçmeniz rica olunur.\n\n{unvan}"},
+ {id:"kurum", ad:"Kurumdan belge talebi", kime:"kurum",
+  metin:"{kurum}\n\n{mahkeme} {esasNo} esas sayılı dosyası kapsamında hazırlanmakta olan sosyal inceleme raporunda değerlendirilmek üzere, ilgili kişiye ait kayıt ve belgelerin tarafıma gönderilmesini rica ederim.\n\n{bugun}\n{unvan}"},
+ {id:"bilgi", ad:"Mahkemeye bilgi notu (tebligat bekleniyor)", kime:"taraf",
+  metin:"{mahkeme} {esasNo} esas sayılı dosya kapsamında taraflardan {ad} ile telefon yoluyla iletişim kurulamadığından {tebligat} tarihinde tebligat çıkarılmış olup tebligat dönüşü beklenmektedir. Görüşme gerçekleştirildikten sonra sosyal inceleme raporu dosyaya sunulacaktır.\n\n{bugun}\n{unvan}"}
+];
+
+let storageOk = true;
+let S = load();
+let tab = "dosyalar", filtre = "tumu", arama = "", calOfs = 0, ozetAy = null;
+
+function bosVeri(){ return {v:1, files:[], ayar:{unvan:"", adres:"", telefonum:"", takipGun:15, tatiller:TATIL_VARSAYILAN, sablonlar:{}, pinH:""}, sonYedek:null}; }
+function load(){
+  try{
+    const raw = localStorage.getItem(KEY);
+    localStorage.setItem(KEY+"_test","1"); localStorage.removeItem(KEY+"_test");
+    if(raw){ const d = JSON.parse(raw); const b = bosVeri(); d.ayar = Object.assign(b.ayar, d.ayar||{}); return donustur(d); }
+  }catch(e){ storageOk = false; }
+  return bosVeri();
+}
+function save(){ try{ localStorage.setItem(KEY, JSON.stringify(S)); }catch(e){ storageOk = false; } }
+
+/* ---------- tarih yardımcıları ---------- */
+function ymd(d){ return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function bugun(){ return ymd(new Date()); }
+function pd(s){ const a = s.split("-").map(Number); return new Date(a[0],a[1]-1,a[2]); }
+function ekle(s,n){ const d = pd(s); d.setDate(d.getDate()+n); return ymd(d); }
+function fark(a,b){ return Math.round((pd(b)-pd(a))/86400000); }
+function tf(s){ if(!s) return "-"; const a = s.split("-"); return a[2]+"."+a[1]+"."+a[0]; }
+function gunAd(s){ return GUN[pd(s).getDay()]; }
+function saatStr(h){ return String(h).padStart(2,"0")+":00"; }
+function simdi(){ const d = new Date(); return ymd(d)+" "+String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+function etk(p){ return p.rol||""; }
+function donustur(d){
+  (d.files||[]).forEach(f=>(f.taraflar||[]).forEach(p=>{
+    if(p.rol==="Anne"){ p.rol = "Davacı"; p.kim = "Anne"; }
+    else if(p.rol==="Baba"){ p.rol = "Davalı"; p.kim = "Baba"; }
+  }));
+  return d;
+}
+function haftaBasi(s){ const d = pd(s); const g = (d.getDay()+6)%7; d.setDate(d.getDate()-g); return ymd(d); }
+
+function tatilMap(){
+  const m = {};
+  (S.ayar.tatiller||"").split("\n").forEach(l=>{
+    const t = l.trim(); const mm = t.match(/^(\d{4}-\d{2}-\d{2})\s*(.*)$/); if(!mm) return;
+    const yarim = /^yar[ıi]m/i.test(mm[2]);
+    m[mm[1]] = {yarim, ad: mm[2].replace(/^yar[ıi]m\s*/i,"") || "Tatil"};
+  });
+  return m;
+}
+function gunSaatleri(s){
+  const g = pd(s).getDay(); if(g===0||g===6) return {saatler:[], neden:"Hafta sonu"};
+  const t = tatilMap()[s];
+  if(t && !t.yarim) return {saatler:[], neden:t.ad};
+  if(t && t.yarim) return {saatler:SAATLER.filter(h=>h<12), neden:t.ad+" (öğleden sonra kapalı)"};
+  return {saatler:SAATLER.slice(), neden:""};
+}
+
+/* ---------- hesaplar ---------- */
+function hedef(f){
+  if(f.yuklendi) return null;
+  const t = bugun();
+  const d7 = f.durusma ? ekle(f.durusma,-7) : null;
+  if(f.istem && f.istem >= t){
+    if(d7 && d7 < f.istem) return seviye({tarih:d7, tur:"kesin", istemGecti:false});
+    return seviye({tarih:f.istem, tur:"istem", istemGecti:false});
+  }
+  if(d7) return seviye({tarih:d7, tur:"kesin", istemGecti:!!f.istem});
+  if(f.istem) return seviye({tarih:f.istem, tur:"istem", istemGecti:true, durusmaYok:true});
+  return null;
+}
+function seviye(h){
+  h.kalan = fark(bugun(), h.tarih);
+  if(h.kalan < 0) h.lv = "gecti";
+  else if(h.tur==="kesin" && h.kalan <= 10) h.lv = "cokacil";
+  else if(h.istemGecti) h.lv = "kirmizi";
+  else if(h.kalan <= 3) h.lv = "kirmizi";
+  else if(h.kalan <= 7) h.lv = "sari";
+  else h.lv = "yesil";
+  return h;
+}
+const LV_SIRA = {gecti:0, cokacil:1, kirmizi:2, sari:3, yesil:4};
+function kalanYazi(h){
+  if(!h) return "";
+  if(h.kalan < 0) return Math.abs(h.kalan)+" gün geçti";
+  if(h.kalan === 0) return "Bugün";
+  return h.kalan+" gün";
+}
+function hedefAciklama(h){
+  if(!h) return "";
+  if(h.durusmaYok) return "İstem "+tf(h.tarih)+" geçti, duruşma tarihi girin";
+  if(h.tur==="kesin") return "Kesin sınır "+tf(h.tarih)+" (duruşma - 7 gün)";
+  return "İstem "+tf(h.tarih);
+}
+function takipler(f){
+  if(f.yuklendi) return [];
+  const g = Number(S.ayar.takipGun)||15, t = bugun(), out = [];
+  (f.taraflar||[]).forEach((p,i)=>{
+    if(p.durum==="Tebligat çıkarıldı" && p.tebligat){
+      const ref = p.takip && p.takip > p.tebligat ? p.takip : p.tebligat;
+      const gun = fark(ref,t); if(gun >= g) out.push({tip:"taraf", i, gun, yazi:etk(p)+" tebligatı "+fark(p.tebligat,t)+" gün oldu"});
+    }
+  });
+  (f.belgeler||[]).forEach((b,i)=>{
+    if(!b.geldi && b.talep){
+      const ref = b.takip && b.takip > b.talep ? b.takip : b.talep;
+      const gun = fark(ref,t); if(gun >= g) out.push({tip:"belge", i, gun, yazi:b.kurum+" belgesi "+fark(b.talep,t)+" gün oldu"});
+    }
+  });
+  return out;
+}
+function tumRandevular(){
+  const out = [];
+  S.files.forEach(f=>(f.taraflar||[]).forEach((p,i)=>{ if(p.randevu) out.push({f, p, i, tarih:p.randevu.tarih, saat:p.randevu.saat}); }));
+  const k = r=>r.tarih+String(r.saat).padStart(2,"0");
+  return out.sort((a,b)=> k(a).localeCompare(k(b)) );
+}
+function doluMu(tarih, saat){ return tumRandevular().find(r=>r.tarih===tarih && r.saat===saat); }
+
+/* ---------- genel yardımcılar ---------- */
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+function bul(id){ return S.files.find(f=>f.id===id); }
+function logla(f,m){ (f.gecmis=f.gecmis||[]).unshift({t:simdi(), m}); }
+function toast(m){ const d = document.createElement("div"); d.className="toast"; d.textContent=m; document.body.appendChild(d); setTimeout(()=>d.remove(),2200); }
+function sor(mesaj, evetYazi, evet, tehlike){
+  const L = document.getElementById("layer"); const d = document.createElement("div"); d.className="dlg";
+  d.innerHTML = '<div class="in"><p>'+mesaj+'</p><div class="row2"><button class="btn" data-a="h">Vazgeç</button><button class="btn '+(tehlike?'d':'p')+'" data-a="e">'+esc(evetYazi)+'</button></div></div>';
+  d.querySelector('[data-a=h]').onclick=()=>d.remove();
+  d.querySelector('[data-a=e]').onclick=()=>{ d.remove(); evet(); };
+  L.appendChild(d);
+}
+function sheet(baslik, html, id){
+  kapatSheet(id);
+  const d = document.createElement("div"); d.className="sheet"; d.id = id||"sheet";
+  d.innerHTML = '<div class="sh"><h2>'+baslik+'</h2><button class="x" onclick="kapatSheet(\''+(id||"sheet")+'\')" aria-label="Kapat">&times;</button></div><div class="sb">'+html+'</div>';
+  document.getElementById("layer").appendChild(d);
+  document.body.style.overflow="hidden";
+  return d;
+}
+function kapatSheet(id){
+  const e = document.getElementById(id||"sheet"); if(e) e.remove();
+  if(!document.querySelector(".sheet")) document.body.style.overflow="";
+}
+
+/* ---------- ekranlar ---------- */
+function go(t){ tab = t; render(); window.scrollTo(0,0); }
+function render(){
+  document.querySelectorAll("nav button").forEach(b=>b.classList.toggle("on", b.dataset.t===tab));
+  document.getElementById("fab").style.display = tab==="dosyalar" ? "" : "none";
+  document.getElementById("hdrSub").textContent = tf(bugun())+" "+GUN[new Date().getDay()];
+  const M = document.getElementById("main");
+  if(tab==="dosyalar") M.innerHTML = vDosyalar();
+  else if(tab==="takvim") M.innerHTML = vTakvim();
+  else if(tab==="ozet") M.innerHTML = vOzet();
+  else M.innerHTML = vAyarlar();
+}
+
+function bannerlar(){
+  let h = "";
+  if(!storageOk) h += '<div class="banner r">Bu ekranda bilgiler kalıcı olarak kaydedilemiyor (deneme modu). Sayfa kapanınca girdikleriniz silinebilir.</div>';
+  if(S.files.length && storageOk){
+    const gun = S.sonYedek ? fark(S.sonYedek.slice(0,10), bugun()) : null;
+    if(gun===null || gun >= 7) h += '<div class="banner a">'+(gun===null?"Henüz hiç yedek almadınız.":"Son yedeğin üzerinden "+gun+" gün geçti.")+' Telefon kaybolursa bilgiler yedekten geri yüklenir.<br><button class="btn s" onclick="yedekAl()">Şimdi yedek al</button></div>';
+  }
+  return h;
+}
+
+function vDosyalar(){
+  const acik = S.files.filter(f=>!f.yuklendi);
+  const acil = acik.filter(f=>{ const h = hedef(f); return h && LV_SIRA[h.lv] <= 2; });
+  const tk = acik.filter(f=>takipler(f).length);
+  const hb = bugun(), hs = ekle(hb,6);
+  const hr = tumRandevular().filter(r=>r.tarih>=hb && r.tarih<=hs && !r.f.yuklendi);
+  let h = bannerlar();
+  if(!S.files.length){
+    return h + '<div class="card empty"><p style="font-size:18px;color:var(--tx);margin-top:0">Melly\'ye hoş geldin</p><p>Mahkemeden gelen dosyaları ekle; istem ve duruşma tarihlerini, randevuları, tebligat ve belge beklemelerini buradan takip et.</p><button class="btn p w" onclick="openEdit()">İlk dosyayı ekle</button><div style="height:8px"></div><button class="btn w" onclick="ornekYukle()">Örnek verilerle dene</button></div>' + foot();
+  }
+  h += '<div class="stats"><div class="stat"><b>'+acik.length+'</b><small>Açık</small></div><div class="stat '+(acil.length?'r':'')+'"><b>'+acil.length+'</b><small>Acil</small></div><div class="stat"><b>'+tk.length+'</b><small>Takip et</small></div><div class="stat"><b>'+hr.length+'</b><small>7 gün randevu</small></div></div>';
+  const F = [["tumu","Tümü"],["acil","Acil"],["takip","Takip et"],["bekleyen","Bekleyenler"],["arsiv","Yüklenenler"]];
+  h += '<input type="search" placeholder="Esas no, ADM no veya isim ara" value="'+esc(arama)+'" oninput="arama=this.value;listeYenile()" style="margin-bottom:8px">';
+  h += '<div class="chips">'+F.map(x=>'<button class="chip '+(filtre===x[0]?'on':'')+'" onclick="filtre=\''+x[0]+'\';render()">'+x[1]+'</button>').join("")+'</div>';
+  h += '<div id="liste">'+liste()+'</div>';
+  return h + foot();
+}
+function listeYenile(){ const e = document.getElementById("liste"); if(e) e.innerHTML = liste(); }
+function liste(){
+  let L = S.files.slice();
+  const q = arama.trim().toLocaleLowerCase("tr");
+  if(q) L = L.filter(f=> (f.esasNo+" "+(f.adm||"")+" "+f.mahkeme+" "+(f.taraflar||[]).map(p=>p.ad).join(" ")).toLocaleLowerCase("tr").includes(q));
+  if(filtre==="arsiv") L = L.filter(f=>f.yuklendi).sort((a,b)=>b.yuklendi.localeCompare(a.yuklendi));
+  else {
+    L = L.filter(f=>!f.yuklendi);
+    if(filtre==="acil") L = L.filter(f=>{ const h = hedef(f); return h && LV_SIRA[h.lv] <= 2; });
+    if(filtre==="takip") L = L.filter(f=>takipler(f).length);
+    if(filtre==="bekleyen") L = L.filter(f=>f.durum==="Tebligat bekleniyor"||f.durum==="Kurumdan belge bekleniyor"||(f.taraflar||[]).some(p=>p.durum==="Tebligat çıkarıldı")||(f.belgeler||[]).some(b=>!b.geldi));
+    L.sort((a,b)=>{ const ha = hedef(a), hb = hedef(b);
+      const sa = ha?LV_SIRA[ha.lv]:9, sb = hb?LV_SIRA[hb.lv]:9;
+      if(sa!==sb) return sa-sb; return (ha?ha.tarih:"9").localeCompare(hb?hb.tarih:"9"); });
+  }
+  if(!L.length) return '<div class="empty">Bu listede dosya yok.</div>';
+  return L.map(kart).join("");
+}
+function kart(f){
+  const h = hedef(f), tk = takipler(f);
+  let b = '<span class="bd '+(f.durum==="Rapor yüklendi"?'g':'a')+'">'+esc(f.durum)+'</span>';
+  if(h && h.lv==="cokacil") b += '<span class="bd rr">Çok acil</span>';
+  if(tk.length) b += '<span class="bd r">Takip et</span>';
+  if(f.yabanci) b += '<span class="bd">Tercüman'+(f.dil?': '+esc(f.dil):'')+'</span>';
+  (f.taraflar||[]).forEach(p=>{ if(p.randevu && p.randevu.tarih>=bugun()) b += '<span class="bd y">'+esc(etk(p))+' '+tf(p.randevu.tarih).slice(0,5)+' '+saatStr(p.randevu.saat)+'</span>'; });
+  const sag = f.yuklendi ? '<span class="kalan c-yesil">Yüklendi</span>' : (h ? '<span class="kalan c-'+h.lv+'">'+kalanYazi(h)+'</span>' : '<span class="kalan c-yok">Tarih yok</span>');
+  const alt = f.yuklendi ? "Yüklendi "+tf(f.yuklendi) : (h ? hedefAciklama(h) : "İstem tarihi girilmedi");
+  return '<div class="file lv-'+(h?h.lv:'yok')+'" onclick="openFile(\''+f.id+'\')"><div class="ftop"><b>'+esc(f.esasNo)+'</b>'+sag+'</div>'+(f.adm?'<div class="adm">ADM: '+esc(f.adm)+'</div>':'')+'<div class="sub">'+esc(f.mahkeme||"")+(f.mahkeme?' · ':'')+alt+'</div>'+b+'</div>';
+}
+
+function vTakvim(){
+  const gb = pd(bugun()).getDay();
+  const hb = ekle(haftaBasi(bugun()), (gb===0||gb===6?7:0) + calOfs*7);
+  let h = '<div class="row2" style="align-items:center;margin-bottom:10px"><button class="btn s" style="flex:none" onclick="calOfs--;render()">&larr; Önceki</button><div style="text-align:center;font-weight:600">'+tf(hb).slice(0,5)+' - '+tf(ekle(hb,4))+'</div><button class="btn s" style="flex:none" onclick="calOfs++;render()">Sonraki &rarr;</button></div>';
+  if(calOfs!==0) h += '<div style="text-align:center;margin-bottom:8px"><button class="btn s" onclick="calOfs=0;render()">Bu haftaya dön</button></div>';
+  const R = tumRandevular();
+  for(let i=0;i<5;i++){
+    const g = ekle(hb,i), gs = gunSaatleri(g), rs = R.filter(r=>r.tarih===g);
+    h += '<div class="calday"><h4 class="'+(g===bugun()?'today':'')+'">'+GUN[pd(g).getDay()]+' '+tf(g)+(g===bugun()?' · Bugün':'')+'</h4>';
+    if(gs.neden && !gs.saatler.length) h += '<div class="sub">'+esc(gs.neden)+'</div>';
+    else {
+      if(gs.neden) h += '<div class="sub" style="margin-bottom:4px">'+esc(gs.neden)+'</div>';
+      if(!rs.length) h += '<div class="sub">Randevu yok · '+gs.saatler.length+' boş saat</div>';
+      rs.forEach(r=>{ h += '<div class="appt" onclick="openFile(\''+r.f.id+'\')"><b>'+saatStr(r.saat)+'</b><div><div>'+esc(r.f.esasNo)+' · '+esc(etk(r.p))+'</div><div class="sub">'+esc(r.p.ad||"")+(r.p.durum==="Görüşüldü"?' · görüşüldü':'')+'</div></div></div>'; });
+      const bos = gs.saatler.length - rs.length; if(rs.length && bos>0) h += '<div class="sub">'+bos+' boş saat</div>';
+    }
+    h += '</div>';
+  }
+  return bannerlar() + h + foot();
+}
+
+function vOzet(){
+  const t = bugun(); if(!ozetAy) ozetAy = t.slice(0,7);
+  const [y,m] = ozetAy.split("-").map(Number);
+  const onceki = ymd(new Date(y,m-2,1)).slice(0,7), sonraki = ymd(new Date(y,m,1)).slice(0,7);
+  const gelen = S.files.filter(f=>(f.gelis||"").slice(0,7)===ozetAy);
+  const yuk = S.files.filter(f=>(f.yuklendi||"").slice(0,7)===ozetAy);
+  const zamaninda = yuk.filter(f=>f.istem && f.yuklendi<=f.istem).length;
+  const durusmaya = yuk.length - zamaninda;
+  const acik = S.files.filter(f=>!f.yuklendi);
+  const sure = yuk.filter(f=>f.gelis).map(f=>fark(f.gelis,f.yuklendi));
+  const ort = sure.length ? Math.round(sure.reduce((a,b)=>a+b,0)/sure.length) : null;
+  let h = '<div class="row2" style="align-items:center;margin-bottom:12px"><button class="btn s" style="flex:none" onclick="ozetAy=\''+onceki+'\';render()">&larr;</button><div style="text-align:center;font-weight:600;font-size:17px">'+AY[m-1]+' '+y+'</div><button class="btn s" style="flex:none" onclick="ozetAy=\''+sonraki+'\';render()">&rarr;</button></div>';
+  h += '<div class="stats" style="grid-template-columns:repeat(3,1fr)"><div class="stat"><b>'+gelen.length+'</b><small>Gelen dosya</small></div><div class="stat"><b>'+yuk.length+'</b><small>Yüklenen rapor</small></div><div class="stat"><b>'+(ort===null?'-':ort)+'</b><small>Ort. gün</small></div></div>';
+  h += '<div class="card"><div class="kv"><span>İstem tarihine yetişen</span><b>'+zamaninda+'</b></div><div class="kv"><span>Duruşma sınırına kalan</span><b>'+durusmaya+'</b></div></div>';
+  h += '<h3>Şu an açık dosyalar ('+acik.length+')</h3><div class="card">';
+  const say = {}; acik.forEach(f=>say[f.durum]=(say[f.durum]||0)+1);
+  const mx = Math.max(1,...Object.values(say));
+  DURUMLAR.filter(d=>d!=="Rapor yüklendi").forEach(d=>{ const n = say[d]||0; h += '<div style="margin-bottom:8px"><div class="kv" style="padding:0"><span>'+d+'</span><b>'+n+'</b></div><div class="bar"><i style="width:'+Math.round(n/mx*100)+'%"></i></div></div>'; });
+  h += '</div>';
+  const lv = {gecti:0,cokacil:0,kirmizi:0,sari:0,yesil:0}; acik.forEach(f=>{ const x = hedef(f); if(x) lv[x.lv]++; });
+  h += '<div class="card"><div class="kv"><span class="c-gecti">Süresi geçen</span><b>'+lv.gecti+'</b></div><div class="kv"><span class="c-cokacil">Çok acil (kesin sınıra 10 gün)</span><b>'+lv.cokacil+'</b></div><div class="kv"><span class="c-kirmizi">Kırmızı</span><b>'+lv.kirmizi+'</b></div><div class="kv"><span class="c-sari">Sarı</span><b>'+lv.sari+'</b></div><div class="kv"><span class="c-yesil">Rahat</span><b>'+lv.yesil+'</b></div></div>';
+  return h + foot();
+}
+
+function vAyarlar(){
+  const A = S.ayar;
+  let h = '<h3 style="margin-top:4px">Hazır metinlerde kullanılacak bilgiler</h3><div class="card">';
+  h += '<label class="f">Ad soyad ve unvan</label><input value="'+esc(A.unvan)+'" placeholder="Ad Soyad - Sosyal Çalışmacı" onchange="S.ayar.unvan=this.value;save()">';
+  h += '<label class="f">Görüşme adresi</label><input value="'+esc(A.adres)+'" placeholder="... Adliyesi, ... kat, oda no" onchange="S.ayar.adres=this.value;save()">';
+  h += '<label class="f">İletişim telefonu (davet metni için)</label><input value="'+esc(A.telefonum)+'" inputmode="tel" onchange="S.ayar.telefonum=this.value;save()">';
+  h += '</div><h3>Takip</h3><div class="card"><label class="f" style="margin-top:0">Tebligat / belge bekleyen dosyada kaç gün sonra "Takip et" uyarısı çıksın?</label><input type="number" min="1" max="90" value="'+esc(A.takipGun)+'" onchange="S.ayar.takipGun=Math.max(1,parseInt(this.value)||15);save()"></div>';
+  h += '<h3>Giriş şifresi</h3><div class="card"><div class="sub">Melly her açıldığında ve 2 dakikadan uzun arka planda kaldığında şifre sorar.</div><div class="row2" style="margin-top:8px"><button class="btn" onclick="pinDegistir()">Şifreyi değiştir</button><button class="btn" onclick="kilitle()">Şimdi kilitle</button></div></div>';
+  h += '<h3>Yedek</h3><div class="card"><div class="sub" style="margin-bottom:8px">Son yedek: '+(S.sonYedek?tf(S.sonYedek.slice(0,10))+' '+S.sonYedek.slice(11):'hiç alınmadı')+'</div><div class="row2"><button class="btn p" onclick="yedekAl()">Yedek al</button><button class="btn" onclick="yedekYukle()">Yedekten yükle</button></div></div>';
+  h += '<h3>Hazır metin şablonları</h3><div class="card">'+SABLONLAR.map(s=>'<div class="kv" style="align-items:center"><span>'+esc(s.ad)+'</span><button class="btn s" onclick="sablonDuzenle(\''+s.id+'\')">Düzenle</button></div>').join("")+'</div>';
+  h += '<h3>Resmî tatiller</h3><div class="card"><div class="sub">Bu günlerde randevu verilemez. Yarım günlerde yalnızca sabah saatleri açıktır. Her satır: <code>YYYY-AA-GG açıklama</code>, yarım gün için tarihten sonra "yarım" yazın. Adli tatil kapatılmaz.</div><textarea style="min-height:160px;font-size:13px;margin-top:8px" onchange="S.ayar.tatiller=this.value;save()">'+esc(A.tatiller)+'</textarea></div>';
+  h += '<h3>Diğer</h3><div class="card"><button class="btn w" onclick="ornekYukle()">Örnek verileri ekle</button><div style="height:8px"></div><button class="btn d w" onclick="hepsiniSil()">Tüm bilgileri sil</button></div>';
+  return h + foot();
+}
+function foot(){ return '<div class="foot">Melly v'+VERSION+'<br>Bilgiler yalnızca bu cihazda saklanır.</div>'; }
+
+/* ---------- dosya detayı ---------- */
+function openFile(id){
+  const f = bul(id); if(!f) return;
+  const h = hedef(f), tk = takipler(f), t = bugun();
+  let x = '';
+  x += '<div class="card">';
+  x += '<div class="kv"><span>Mahkeme</span><span>'+esc(f.mahkeme||"-")+'</span></div>';
+  x += '<div class="kv"><span>Geliş</span><span>'+tf(f.gelis)+'</span></div>';
+  x += '<div class="kv"><span>İstem</span><span class="'+(f.istem && f.istem<t && !f.yuklendi?'c-kirmizi':'')+'">'+tf(f.istem)+(f.istem && f.istem<t && !f.yuklendi?' (geçti)':'')+'</span></div>';
+  x += '<div class="kv"><span>Duruşma</span><span>'+tf(f.durusma)+'</span></div>';
+  if(f.durusma) x += '<div class="kv"><span>Kesin son yükleme</span><b class="c-cokacil">'+tf(ekle(f.durusma,-7))+'</b></div>';
+  if(h) x += '<div style="margin-top:6px;font-weight:600" class="c-'+h.lv+'">'+hedefAciklama(h)+' · '+kalanYazi(h)+'</div>';
+  if(f.yuklendi) x += '<div style="margin-top:6px;font-weight:600" class="c-yesil">Rapor '+tf(f.yuklendi)+' tarihinde yüklendi</div>';
+  if(f.yabanci) x += '<span class="bd">Yabancı uyruklu · tercüman'+(f.dil?': '+esc(f.dil):'')+'</span>';
+  x += '</div>';
+  if(tk.length) x += '<div class="banner r"><b>Takip et:</b><br>'+tk.map(k=>esc(k.yazi)+' <button class="btn s" onclick="event.stopPropagation();takipEdildi(\''+f.id+'\',\''+k.tip+'\','+k.i+')">Takip edildi</button>').join("<br>")+'</div>';
+  x += '<label class="f">Dosya durumu</label><select onchange="durumDegis(\''+f.id+'\',this.value)">'+DURUMLAR.map(d=>'<option '+(d===f.durum?'selected':'')+'>'+d+'</option>').join("")+'</select>';
+
+  x += '<h3>Taraflar</h3>';
+  (f.taraflar||[]).forEach((p,i)=>{
+    x += '<div class="card"><div class="ftop"><b>'+esc(etk(p))+(p.ad?' - '+esc(p.ad):'')+'</b></div>';
+    if(p.tel) x += '<div class="sub"><a href="tel:'+esc(p.tel.replace(/\s/g,""))+'">'+esc(p.tel)+'</a></div>';
+    x += '<label class="f">Durum</label><select onchange="tarafDegis(\''+f.id+'\','+i+',\'durum\',this.value)">'+TARAF_DURUM.map(d=>'<option '+(d===p.durum?'selected':'')+'>'+d+'</option>').join("")+'</select>';
+    if(p.durum==="Tebligat çıkarıldı") x += '<label class="f">Tebligat çıkarılma tarihi</label><input type="date" value="'+esc(p.tebligat||"")+'" onchange="tarafDegis(\''+f.id+'\','+i+',\'tebligat\',this.value)">';
+    if(p.randevu){
+      const gec = p.randevu.tarih < t;
+      x += '<div style="margin-top:10px" class="banner '+(gec?'':'a')+'">Randevu: <b>'+tf(p.randevu.tarih)+' '+gunAd(p.randevu.tarih)+' '+saatStr(p.randevu.saat)+'</b>'+(gec&&p.durum!=="Görüşüldü"?'<br>Randevu tarihi geçti. Görüşme yapıldıysa durumu "Görüşüldü" yapın.':'')+'<br><div class="row2" style="margin-top:6px"><button class="btn s" onclick="openSlot(\''+f.id+'\','+i+')">Değiştir</button><button class="btn s" onclick="randevuSil(\''+f.id+'\','+i+')">Kaldır</button><button class="btn s" onclick="openMetin(\''+f.id+'\',\'randevu\','+i+')">Mesaj</button></div></div>';
+    } else x += '<div style="margin-top:10px"><button class="btn w" onclick="openSlot(\''+f.id+'\','+i+')">Randevu ver</button></div>';
+    x += '</div>';
+  });
+
+  x += '<h3>Kurumlardan istenen belgeler</h3>';
+  (f.belgeler||[]).forEach((b,i)=>{
+    x += '<div class="card"><div class="ftop"><b>'+esc(b.kurum)+'</b>'+(b.geldi?'<span class="bd g">Geldi '+tf(b.geldi)+'</span>':'<span class="bd y">Bekleniyor</span>')+'</div><div class="sub">İstendi: '+tf(b.talep)+(b.geldi?'':' · '+fark(b.talep,t)+' gün oldu')+'</div><div class="row2" style="margin-top:8px">'+(b.geldi?'<button class="btn s" onclick="belgeGeldi(\''+f.id+'\','+i+',false)">Gelmedi olarak işaretle</button>':'<button class="btn s" onclick="belgeGeldi(\''+f.id+'\','+i+',true)">Belge geldi</button>')+'<button class="btn s" onclick="openMetin(\''+f.id+'\',\'kurum\','+i+')">Yazı</button><button class="btn s d" onclick="belgeSil(\''+f.id+'\','+i+')">Sil</button></div></div>';
+  });
+  x += '<div class="card"><label class="f" style="margin-top:0">Kurum adı</label><input id="bk" placeholder="SGK, okul, emniyet, hastane..."><label class="f">İstenme tarihi</label><input id="bt" type="date" value="'+t+'"><div id="berr" class="err"></div><div style="height:8px"></div><button class="btn w" onclick="belgeEkle(\''+f.id+'\')">Belge talebi ekle</button></div>';
+
+  x += '<h3>Notlar</h3><textarea placeholder="Dosyayla ilgili notlar" onchange="notKaydet(\''+f.id+'\',this.value)">'+esc(f.notlar||"")+'</textarea>';
+  x += '<div style="height:12px"></div><button class="btn w" onclick="openMetin(\''+f.id+'\')">Hazır metin oluştur</button><div style="height:8px"></div>';
+  x += f.yuklendi ? '<button class="btn w" onclick="yuklendi(\''+f.id+'\',false)">Yüklemeyi geri al</button>' : '<button class="btn p w" onclick="yuklendi(\''+f.id+'\',true)">Rapor dosyaya yüklendi</button>';
+
+  x += '<h3>Geçmiş</h3><div class="log">'+((f.gecmis||[]).map(g=>'<div><b>'+tf(g.t.slice(0,10))+' '+g.t.slice(11)+'</b> '+esc(g.m)+'</div>').join("")||'<div>Kayıt yok</div>')+'</div>';
+  x += '<div style="height:16px"></div><div class="row2"><button class="btn" onclick="openEdit(\''+f.id+'\')">Bilgileri düzenle</button><button class="btn d" onclick="dosyaSil(\''+f.id+'\')">Dosyayı sil</button></div>';
+  const el = document.getElementById("detay"); const sc = el ? el.scrollTop : 0;
+  const d = sheet(esc(f.esasNo)+(f.adm?'<div class="adm" style="font-size:14px">ADM: '+esc(f.adm)+'</div>':''), x, "detay"); d.scrollTop = sc;
+}
+function yenile(id){ save(); render(); if(document.getElementById("detay")) openFile(id); }
+function durumDegis(id,v){ const f = bul(id); logla(f,"Durum: "+f.durum+" → "+v); f.durum = v; if(v==="Rapor yüklendi" && !f.yuklendi){ f.yuklendi = bugun(); } if(v!=="Rapor yüklendi" && f.yuklendi){ f.yuklendi = null; } yenile(id); }
+function tarafDegis(id,i,k,v){
+  const f = bul(id), p = f.taraflar[i];
+  if(k==="durum"){ logla(f,etk(p)+": "+p.durum+" → "+v); if(v==="Tebligat çıkarıldı" && !p.tebligat) p.tebligat = bugun(); }
+  if(k==="tebligat") logla(f,etk(p)+" tebligat tarihi: "+tf(v));
+  p[k] = v; otoDurum(f); yenile(id);
+}
+function otoDurum(f){
+  if(f.yuklendi || f.durum==="Rapor yazılıyor") return;
+  const T = f.taraflar||[];
+  if(T.length && T.every(p=>p.durum==="Görüşüldü")){ if((f.belgeler||[]).some(b=>!b.geldi)) yeniDurum(f,"Kurumdan belge bekleniyor"); else yeniDurum(f,"Rapor yazılıyor"); return; }
+  if(T.some(p=>p.durum==="Tebligat çıkarıldı")) return yeniDurum(f,"Tebligat bekleniyor");
+  if(T.some(p=>p.durum==="Görüşüldü")) return yeniDurum(f,"Görüşmeler sürüyor");
+  if(T.some(p=>p.randevu)) return yeniDurum(f,"Randevu verildi");
+}
+function yeniDurum(f,v){ if(f.durum!==v){ logla(f,"Durum: "+f.durum+" → "+v+" (otomatik)"); f.durum = v; } }
+function takipEdildi(id,tip,i){ const f = bul(id); const o = tip==="taraf"?f.taraflar[i]:f.belgeler[i]; o.takip = bugun(); logla(f,(tip==="taraf"?etk(o)+" tebligatı":o.kurum+" belgesi")+" takip edildi"); toast("Sayaç sıfırlandı"); yenile(id); }
+function randevuSil(id,i){ const f = bul(id), p = f.taraflar[i]; sor(esc(etk(p))+" için "+tf(p.randevu.tarih)+" "+saatStr(p.randevu.saat)+" randevusu kaldırılsın mı?","Kaldır",()=>{ logla(f,etk(p)+" randevusu kaldırıldı ("+tf(p.randevu.tarih)+" "+saatStr(p.randevu.saat)+")"); p.randevu = null; if(p.durum==="Randevu verildi") p.durum="Ulaşılmadı"; yenile(id); }, true); }
+function belgeEkle(id){
+  const k = document.getElementById("bk").value.trim(), t = document.getElementById("bt").value;
+  if(!k){ document.getElementById("berr").textContent = "Kurum adını yazın."; return; }
+  if(!t){ document.getElementById("berr").textContent = "Tarihi seçin."; return; }
+  const f = bul(id); (f.belgeler=f.belgeler||[]).push({kurum:k, talep:t, geldi:null}); logla(f,k+" kurumundan belge istendi"); if(!f.yuklendi && f.durum!=="Tebligat bekleniyor") yeniDurum(f,"Kurumdan belge bekleniyor"); yenile(id);
+}
+function belgeGeldi(id,i,v){ const f = bul(id), b = f.belgeler[i]; b.geldi = v ? bugun() : null; logla(f,b.kurum+" belgesi "+(v?"geldi":"gelmedi olarak işaretlendi")); if(v && f.durum==="Kurumdan belge bekleniyor" && f.belgeler.every(x=>x.geldi)){ const T=f.taraflar||[]; yeniDurum(f, T.every(p=>p.durum==="Görüşüldü")?"Rapor yazılıyor":"Görüşmeler sürüyor"); } yenile(id); }
+function belgeSil(id,i){ const f = bul(id); sor(esc(f.belgeler[i].kurum)+" belge kaydı silinsin mi?","Sil",()=>{ logla(f,f.belgeler[i].kurum+" belge kaydı silindi"); f.belgeler.splice(i,1); yenile(id); }, true); }
+function notKaydet(id,v){ const f = bul(id); f.notlar = v; save(); toast("Not kaydedildi"); }
+function yuklendi(id,v){
+  const f = bul(id);
+  if(v){ sor("Rapor bugün ("+tf(bugun())+") dosyaya yüklendi olarak işaretlensin mi? Dosya \"Yüklenenler\" listesine geçer.","Evet, yüklendi",()=>{ f.yuklendi = bugun(); logla(f,"Rapor dosyaya yüklendi"); f.durum = "Rapor yüklendi"; yenile(id); toast("Tebrikler, dosya tamamlandı"); }); }
+  else { f.yuklendi = null; f.durum = "Rapor yazılıyor"; logla(f,"Yükleme geri alındı"); yenile(id); }
+}
+function dosyaSil(id){ const f = bul(id); sor("<b>"+esc(f.esasNo)+"</b> dosyası ve tüm kayıtları silinsin mi? Bu işlem geri alınamaz.","Sil",()=>{ S.files = S.files.filter(x=>x.id!==id); save(); kapatSheet("detay"); render(); toast("Dosya silindi"); }, true); }
+
+/* ---------- dosya ekle / düzenle ---------- */
+function openEdit(id){
+  const f = id ? bul(id) : null;
+  const T = f ? f.taraflar : [{rol:"Davacı",ad:"",tel:""},{rol:"Davalı",ad:"",tel:""}];
+  let x = '<form id="ef" onsubmit="event.preventDefault();kaydet(\''+(id||"")+'\')">';
+  x += '<label class="f">Esas no *</label><input name="esasNo" value="'+esc(f?f.esasNo:"")+'" placeholder="2026/123">';
+  x += '<label class="f">ADM no</label><input name="adm" value="'+esc(f?f.adm||"":"")+'" placeholder="2026/4567">';
+  x += '<label class="f">Mahkeme</label><input name="mahkeme" value="'+esc(f?f.mahkeme:"")+'" placeholder="1. Aile Mahkemesi">';
+  x += '<label class="f">Dosyanın geliş tarihi</label><input type="date" name="gelis" value="'+esc(f?f.gelis:bugun())+'">';
+  x += '<label class="f">İstem tarihi *</label><input type="date" name="istem" value="'+esc(f?f.istem:"")+'">';
+  x += '<label class="f">Duruşma tarihi</label><input type="date" name="durusma" value="'+esc(f?f.durusma||"":"")+'"><div class="sub">Duruşma tarihinden 7 gün önce kesin son yükleme tarihi olarak hesaplanır.</div>';
+  x += '<label class="f" style="display:flex;align-items:center;color:var(--tx)"><input type="checkbox" name="yabanci" '+(f&&f.yabanci?'checked':'')+'>Yabancı uyruklu taraf var (tercüman gerekli)</label><input name="dil" value="'+esc(f?f.dil||"":"")+'" placeholder="Dil (ör. Arapça, Rusça)">';
+  x += '<h3>Taraflar</h3>';
+  T.forEach((p,i)=>{ x += '<label class="f">'+(i===0?'Davacı':'Davalı')+'</label><input name="ad'+i+'" value="'+esc(p.ad||"")+'" placeholder="Ad soyad"><div style="height:6px"></div><input name="tel'+i+'" value="'+esc(p.tel||"")+'" inputmode="tel" placeholder="Telefon">'; });
+  if(!f) x += '<label class="f">Notlar</label><textarea name="notlar"></textarea>';
+  x += '<div id="eerr" class="err"></div><div style="height:14px"></div><button class="btn p w" type="submit">'+(f?'Kaydet':'Dosyayı ekle')+'</button></form>';
+  sheet(f?"Bilgileri düzenle":"Yeni dosya", x, "edit");
+  const ef = document.getElementById("ef"); ef.addEventListener("input",()=>{ document.getElementById("eerr").textContent=""; });
+}
+function kaydet(id){
+  const E = document.getElementById("ef").elements, v = n=>E[n] ? E[n].value.trim() : "";
+  const err = document.getElementById("eerr");
+  if(!v("esasNo")){ err.textContent = "Esas numarasını yazın."; return; }
+  if(!v("istem")){ err.textContent = "İstem tarihini seçin."; return; }
+  if(v("durusma") && v("gelis") && v("durusma") < v("gelis")){ err.textContent = "Duruşma tarihi geliş tarihinden önce olamaz."; return; }
+  let f = id ? bul(id) : null;
+  if(!f){
+    f = {id:uid(), durum:"Yeni geldi", taraflar:[{rol:"Davacı",ad:"",tel:"",durum:"Ulaşılmadı"},{rol:"Davalı",ad:"",tel:"",durum:"Ulaşılmadı"}], belgeler:[], gecmis:[], yuklendi:null, notlar:v("notlar")};
+    S.files.push(f); logla(f,"Dosya eklendi");
+  } else {
+    const deg = [];
+    if(f.istem!==v("istem")) deg.push("istem "+tf(f.istem)+" → "+tf(v("istem")));
+    if((f.durusma||"")!==v("durusma")) deg.push("duruşma "+tf(f.durusma)+" → "+tf(v("durusma")));
+    if(deg.length) logla(f,"Tarih değişti: "+deg.join(", "));
+  }
+  f.esasNo = v("esasNo"); f.adm = v("adm"); f.mahkeme = v("mahkeme"); f.gelis = v("gelis"); f.istem = v("istem"); f.durusma = v("durusma") || null;
+  f.yabanci = E["yabanci"].checked; f.dil = v("dil");
+  f.taraflar.forEach((p,i)=>{ p.ad = v("ad"+i); p.tel = v("tel"+i); p.rol = i===0?"Davacı":"Davalı" });
+  save(); kapatSheet("edit"); render();
+  if(id && document.getElementById("detay")) openFile(id);
+  toast(id ? "Kaydedildi" : "Dosya eklendi");
+}
+
+/* ---------- randevu ---------- */
+let slotGun = null;
+function openSlot(id,i,gun){
+  const f = bul(id), p = f.taraflar[i], t = bugun();
+  if(!gun){ gun = p.randevu && p.randevu.tarih>=t ? p.randevu.tarih : t; }
+  slotGun = gun;
+  const hb = haftaBasi(gun);
+  let x = '<div class="sub">'+esc(f.esasNo)+' · '+esc(etk(p))+(p.ad?' - '+esc(p.ad):'')+'</div>';
+  x += '<div class="row2" style="align-items:center;margin-top:10px"><button class="btn s" style="flex:none" onclick="openSlot(\''+id+'\','+i+',\''+ekle(hb,-7)+'\')">&larr;</button><div style="text-align:center;font-weight:600">'+AY[pd(hb).getMonth()]+' '+pd(hb).getFullYear()+'</div><button class="btn s" style="flex:none" onclick="openSlot(\''+id+'\','+i+',\''+ekle(hb,7)+'\')">&rarr;</button></div>';
+  x += '<div class="days">';
+  for(let k=0;k<5;k++){ const g = ekle(hb,k), gs = gunSaatleri(g); const off = g<t || !gs.saatler.length;
+    x += '<button class="day '+(g===gun?'on':'')+' '+(off?'off':'')+'" onclick="openSlot(\''+id+'\','+i+',\''+g+'\')"><small>'+GUNK[pd(g).getDay()]+'</small>'+pd(g).getDate()+'</button>'; }
+  x += '</div>';
+  const gs = gunSaatleri(gun);
+  x += '<div style="font-weight:600;margin-bottom:6px">'+tf(gun)+' '+gunAd(gun)+'</div>';
+  if(gun < t) x += '<div class="empty">Geçmiş bir gün seçili.</div>';
+  else if(!gs.saatler.length) x += '<div class="empty">'+esc(gs.neden)+', randevu verilemez.</div>';
+  else {
+    if(gs.neden) x += '<div class="banner">'+esc(gs.neden)+'</div>';
+    const simdiSaat = new Date().getHours();
+    SAATLER.forEach(h=>{
+      if(h===13) x += '<div class="ogle">12:00 - 13:00 öğle arası</div>';
+      if(!gs.saatler.includes(h)) return;
+      const r = doluMu(gun,h);
+      const benim = r && r.f.id===id && r.i===i;
+      if(r) x += '<div class="slot busy"><span>'+saatStr(h)+' '+(benim?'Mevcut randevu':'Dolu')+'</span><span>'+esc(r.f.esasNo)+' '+esc(etk(r.p))+'</span></div>';
+      else if(gun===t && h<=simdiSaat) x += '<div class="slot busy"><span>'+saatStr(h)+'</span><span>Geçti</span></div>';
+      else x += '<button class="slot free" onclick="randevuVer(\''+id+'\','+i+',\''+gun+'\','+h+')"><span>'+saatStr(h)+' Boş</span><span>Seç</span></button>';
+    });
+  }
+  const h = hedef(f);
+  if(h) x += '<div class="sub" style="margin-top:10px">Bu dosyanın son tarihi: <b class="c-'+h.lv+'">'+tf(h.tarih)+'</b></div>';
+  const el = document.getElementById("slot"); const sc = el?el.scrollTop:0;
+  const d = sheet("Randevu ver", x, "slot"); d.scrollTop = sc;
+}
+function randevuVer(id,i,gun,h){
+  const f = bul(id), p = f.taraflar[i];
+  const hd = hedef(f), uyari = hd && gun > hd.tarih ? '<br><br><span class="c-kirmizi">Dikkat: bu tarih dosyanın son tarihinden ('+tf(hd.tarih)+') sonra.</span>' : '';
+  sor(esc(etk(p))+" için <b>"+tf(gun)+" "+gunAd(gun)+" "+saatStr(h)+"</b> randevusu verilsin mi?"+uyari,"Randevu ver",()=>{
+    const eski = p.randevu; p.randevu = {tarih:gun, saat:h};
+    logla(f,etk(p)+" randevusu: "+tf(gun)+" "+saatStr(h)+(eski?" (önceki: "+tf(eski.tarih)+" "+saatStr(eski.saat)+")":""));
+    if(p.durum!=="Görüşüldü") p.durum = "Randevu verildi";
+    otoDurum(f); save(); kapatSheet("slot"); render(); if(document.getElementById("detay")) openFile(id);
+    toast("Randevu kaydedildi");
+    openMetin(id,"randevu",i);
+  });
+}
+
+/* ---------- hazır metinler ---------- */
+function sablon(sid){ const s = SABLONLAR.find(x=>x.id===sid); return (S.ayar.sablonlar && S.ayar.sablonlar[sid]) || s.metin; }
+function doldur(metin, f, p, b){
+  const r = p && p.randevu;
+  const M = {ad:p?(p.ad||"…"):"", rol:p?etk(p):"", esasNo:f.esasNo, adm:f.adm||"", mahkeme:f.mahkeme||"", tarih:r?tf(r.tarih):"…", gun:r?gunAd(r.tarih):"", saat:r?saatStr(r.saat):"…",
+    adres:S.ayar.adres||"[adres - Ayarlar'dan girin]", unvan:S.ayar.unvan||"[ad soyad, unvan - Ayarlar'dan girin]", telefonum:S.ayar.telefonum||"[telefon - Ayarlar'dan girin]",
+    kurum:b?b.kurum:"[kurum adı]", tebligat:p&&p.tebligat?tf(p.tebligat):"…", bugun:tf(bugun())};
+  return metin.replace(/\{(\w+)\}/g,(m,k)=> k in M ? M[k] : m);
+}
+function openMetin(id, sid, idx){
+  const f = bul(id); sid = sid || "randevu";
+  const s = SABLONLAR.find(x=>x.id===sid);
+  if(idx==null) idx = 0;
+  const p = s.kime==="taraf" ? f.taraflar[idx] : null;
+  const b = s.kime==="kurum" ? (f.belgeler||[])[idx] : null;
+  let x = '<label class="f" style="margin-top:0">Metin</label><select onchange="openMetin(\''+id+'\',this.value,0)">'+SABLONLAR.map(z=>'<option value="'+z.id+'" '+(z.id===sid?'selected':'')+'>'+esc(z.ad)+'</option>').join("")+'</select>';
+  if(s.kime==="taraf") x += '<label class="f">Kime</label><select onchange="openMetin(\''+id+'\',\''+sid+'\',+this.value)">'+f.taraflar.map((q,i)=>'<option value="'+i+'" '+(i===idx?'selected':'')+'>'+esc(etk(q))+(q.ad?' - '+esc(q.ad):'')+'</option>').join("")+'</select>';
+  if(s.kime==="kurum"){ if((f.belgeler||[]).length) x += '<label class="f">Kurum</label><select onchange="openMetin(\''+id+'\',\''+sid+'\',+this.value)">'+f.belgeler.map((q,i)=>'<option value="'+i+'" '+(i===idx?'selected':'')+'>'+esc(q.kurum)+'</option>').join("")+'</select>'; else x += '<div class="sub" style="margin-top:6px">Bu dosyada henüz belge talebi yok; kurum adını metinde düzeltin.</div>'; }
+  x += '<label class="f">Metni buradan düzeltebilirsiniz</label><textarea id="mt" style="min-height:240px">'+esc(doldur(sablon(sid),f,p,b))+'</textarea>';
+  x += '<div style="height:10px"></div><button class="btn p w" onclick="kopyala()">Kopyala</button>';
+  if(p && p.tel){ const n = telNo(p.tel); x += '<div style="height:8px"></div><div class="row2"><button class="btn" onclick="disAc(\'wa\',\''+n+'\')">WhatsApp</button><button class="btn" onclick="disAc(\'sms\',\''+n+'\')">SMS</button></div><div class="sub" style="margin-top:4px">'+esc(p.tel)+'</div>'; }
+  sheet("Hazır metin", x, "metin");
+}
+function telNo(t){ let n = String(t).replace(/\D/g,""); if(n.startsWith("0")) n = "90"+n.slice(1); else if(n.length===10) n = "90"+n; return n; }
+function disAc(tip,n){
+  const m = encodeURIComponent(document.getElementById("mt").value);
+  const u = tip==="wa" ? "https://wa.me/"+n+"?text="+m : "sms:+"+n+"&body="+m;
+  const a = document.createElement("a"); a.href = u; a.target = "_blank"; a.rel = "noopener"; document.body.appendChild(a); a.click(); a.remove();
+}
+function kopyala(){
+  const t = document.getElementById("mt");
+  const ok = ()=>toast("Kopyalandı");
+  try{ navigator.clipboard.writeText(t.value).then(ok).catch(()=>{ t.select(); try{ document.execCommand("copy"); ok(); }catch(e){ toast("Metni seçip elle kopyalayın"); } }); }
+  catch(e){ t.select(); try{ document.execCommand("copy"); ok(); }catch(e2){ toast("Metni seçip elle kopyalayın"); } }
+}
+function sablonDuzenle(sid){
+  const s = SABLONLAR.find(x=>x.id===sid);
+  let x = '<div class="sub">Süslü parantez içindeki alanlar otomatik dolar: {ad} {rol} {esasNo} {adm} {mahkeme} {tarih} {gun} {saat} {adres} {unvan} {telefonum} {kurum} {tebligat} {bugun}</div><textarea id="st" style="min-height:280px;margin-top:8px">'+esc(sablon(sid))+'</textarea><div style="height:10px"></div><button class="btn p w" onclick="S.ayar.sablonlar[\''+sid+'\']=document.getElementById(\'st\').value;save();kapatSheet(\'sab\');toast(\'Şablon kaydedildi\')">Kaydet</button><div style="height:8px"></div><button class="btn w" onclick="delete S.ayar.sablonlar[\''+sid+'\'];save();kapatSheet(\'sab\');toast(\'Varsayılana döndü\')">Varsayılana döndür</button>';
+  sheet(esc(s.ad), x, "sab");
+}
+
+/* ---------- yedek (şifreli) ---------- */
+function b64(buf){ let s = ""; const a = new Uint8Array(buf); for(let i=0;i<a.length;i+=8192) s += String.fromCharCode.apply(null, a.subarray(i,i+8192)); return btoa(s); }
+function unb64(s){ const b = atob(s); const a = new Uint8Array(b.length); for(let i=0;i<b.length;i++) a[i] = b.charCodeAt(i); return a; }
+async function anahtar(sifre, tuz){
+  const k = await crypto.subtle.importKey("raw", new TextEncoder().encode(sifre), "PBKDF2", false, ["deriveKey"]);
+  return crypto.subtle.deriveKey({name:"PBKDF2", salt:tuz, iterations:200000, hash:"SHA-256"}, k, {name:"AES-GCM", length:256}, false, ["encrypt","decrypt"]);
+}
+async function sifrele(obj, sifre){
+  const tuz = crypto.getRandomValues(new Uint8Array(16)), iv = crypto.getRandomValues(new Uint8Array(12));
+  const k = await anahtar(sifre, tuz);
+  const c = await crypto.subtle.encrypt({name:"AES-GCM", iv}, k, new TextEncoder().encode(JSON.stringify(obj)));
+  return JSON.stringify({melly:1, tuz:b64(tuz), iv:b64(iv), veri:b64(c)});
+}
+async function coz(metin, sifre){
+  const o = JSON.parse(metin); if(!o.melly) throw new Error("bicim");
+  const k = await anahtar(sifre, unb64(o.tuz));
+  const p = await crypto.subtle.decrypt({name:"AES-GCM", iv:unb64(o.iv)}, k, unb64(o.veri));
+  return JSON.parse(new TextDecoder().decode(p));
+}
+function yedekAl(){
+  if(!window.crypto || !crypto.subtle){ toast("Bu tarayıcıda şifreleme desteklenmiyor"); return; }
+  let x = '<div class="sub">Yedek dosyası bir şifreyle kilitlenir. Şifreyi unutursanız yedek açılamaz, bir yere not edin.</div><label class="f">Yedek şifresi (en az 6 karakter)</label><input id="ys1" type="password" autocomplete="new-password"><label class="f">Şifre tekrar</label><input id="ys2" type="password" autocomplete="new-password"><div id="yerr" class="err"></div><div style="height:12px"></div><button class="btn p w" onclick="yedekOlustur()">Yedek dosyasını oluştur</button><div id="yout"></div>';
+  sheet("Yedek al", x, "yedek");
+}
+async function yedekOlustur(){
+  const a = document.getElementById("ys1").value, b = document.getElementById("ys2").value, e = document.getElementById("yerr");
+  if(a.length < 6){ e.textContent = "Şifre en az 6 karakter olmalı."; return; }
+  if(a !== b){ e.textContent = "Şifreler aynı değil."; return; }
+  e.textContent = "";
+  try{
+    const metin = await sifrele({files:S.files, ayar:S.ayar}, a);
+    const ad = "Melly-yedek-"+bugun()+".melly";
+    const dosya = new File([metin], ad, {type:"application/octet-stream"});
+    let paylasildi = false;
+    if(navigator.canShare && navigator.canShare({files:[dosya]})){
+      try{ await navigator.share({files:[dosya], title:ad}); paylasildi = true; }catch(err){ if(err && err.name==="AbortError"){ toast("Vazgeçildi"); return; } }
+    }
+    if(!paylasildi){
+      try{ const u = URL.createObjectURL(dosya); const l = document.createElement("a"); l.href = u; l.download = ad; document.body.appendChild(l); l.click(); l.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); }catch(err){}
+    }
+    S.sonYedek = simdi(); save();
+    document.getElementById("yout").innerHTML = '<div class="banner a" style="margin-top:12px">Yedek hazır: <b>'+ad+'</b><br>iPhone\'da paylaşım ekranından <b>"Dosyalar\'a Kaydet"</b> seçip iCloud Drive\'a kaydedin. Dosya inmediyse aşağıdaki şifreli metni kopyalayıp Notlar\'a yapıştırabilirsiniz.</div><textarea id="mt" style="min-height:90px;font-size:12px" readonly>'+esc(metin)+'</textarea><div style="height:8px"></div><button class="btn w" onclick="kopyala()">Şifreli yedek metnini kopyala</button>';
+    render();
+  }catch(err){ e.textContent = "Yedek oluşturulamadı."; }
+}
+function yedekYukle(){
+  let x = '<div class="banner r">Yedekten yükleme, bu cihazdaki <b>tüm mevcut bilgilerin yerine</b> yedektekileri koyar.</div><label class="f">Yedek dosyası (.melly)</label><input id="yf" type="file" accept=".melly,application/octet-stream,application/json,text/plain"><label class="f">veya şifreli yedek metnini yapıştırın</label><textarea id="ym" style="min-height:70px;font-size:12px"></textarea><label class="f">Yedek şifresi</label><input id="yp" type="password"><div id="yerr" class="err"></div><div style="height:12px"></div><button class="btn p w" onclick="yedekCoz()">Yedeği yükle</button>';
+  sheet("Yedekten yükle", x, "yedek");
+}
+async function yedekCoz(){
+  const e = document.getElementById("yerr"), fl = document.getElementById("yf").files[0], sif = document.getElementById("yp").value;
+  let metin = document.getElementById("ym").value.trim();
+  if(fl) metin = await fl.text();
+  if(!metin){ e.textContent = "Yedek dosyasını seçin veya metni yapıştırın."; return; }
+  if(!sif){ e.textContent = "Şifreyi yazın."; return; }
+  try{
+    const d = donustur(await coz(metin, sif));
+    sor("Yedekte <b>"+d.files.length+"</b> dosya var. Bu cihazdaki bilgilerin yerine yüklensin mi?","Yükle",()=>{
+      S.files = d.files||[]; S.ayar = Object.assign(bosVeri().ayar, d.ayar||{}); save(); kapatSheet("yedek"); render(); toast("Yedek yüklendi");
+    }, true);
+  }catch(err){ e.textContent = "Yedek açılamadı. Şifre yanlış veya dosya bozuk olabilir."; }
+}
+function hepsiniSil(){
+  sor("Bu cihazdaki <b>tüm dosyalar ve ayarlar</b> silinsin mi? Yedeğiniz yoksa geri getirilemez.","Hepsini sil",()=>{ S = bosVeri(); save(); render(); toast("Tüm bilgiler silindi"); kilitle(); }, true);
+}
+
+/* ---------- örnek veri ---------- */
+function isGunu(s, n){ let d = s, k = 0; while(k < n){ d = ekle(d,1); if(gunSaatleri(d).saatler.length) k++; } return d; }
+function ornekYukle(){
+  const t = bugun();
+  const mk = (o)=>Object.assign({id:uid(), belgeler:[], gecmis:[{t:simdi(), m:"Örnek dosya eklendi"}], yuklendi:null, notlar:"", yabanci:false, dil:""}, o);
+  const g1 = isGunu(t,1), g2 = isGunu(t,2), g3 = isGunu(t,3);
+  S.files.push(
+    mk({esasNo:"ÖRNEK 2026/412", adm:"2026/1612", mahkeme:"2. Aile Mahkemesi", gelis:ekle(t,-40), istem:ekle(t,-4), durusma:ekle(t,12), durum:"Kurumdan belge bekleniyor",
+      taraflar:[{rol:"Davacı",ad:"Ayşe Örnek",tel:"0555 000 00 01",durum:"Görüşüldü",randevu:{tarih:ekle(t,-10),saat:10}},{rol:"Davalı",ad:"Mehmet Örnek",tel:"0555 000 00 02",durum:"Görüşüldü",randevu:{tarih:ekle(t,-9),saat:14}}],
+      belgeler:[{kurum:"SGK İl Müdürlüğü",talep:ekle(t,-18),geldi:null}], notlar:"Örnek: SGK hizmet dökümü bekleniyor."}),
+    mk({esasNo:"ÖRNEK 2026/398", adm:"2026/1598", mahkeme:"1. Aile Mahkemesi", gelis:ekle(t,-20), istem:ekle(t,6), durusma:ekle(t,40), durum:"Randevu verildi",
+      taraflar:[{rol:"Davacı",ad:"Zeynep Deneme",tel:"0555 000 00 03",durum:"Randevu verildi",randevu:{tarih:g1,saat:10}},{rol:"Davalı",ad:"Ali Deneme",tel:"0555 000 00 04",durum:"Randevu verildi",randevu:{tarih:g2,saat:13}}]}),
+    mk({esasNo:"ÖRNEK 2026/430", adm:"2026/1630", mahkeme:"3. Aile Mahkemesi", gelis:ekle(t,-25), istem:ekle(t,18), durusma:ekle(t,55), durum:"Tebligat bekleniyor", yabanci:true, dil:"Arapça",
+      taraflar:[{rol:"Davacı",ad:"Fatma Test",tel:"0555 000 00 05",durum:"Randevu verildi",randevu:{tarih:g3,saat:11}},{rol:"Davalı",ad:"Omar Test",tel:"",durum:"Tebligat çıkarıldı",tebligat:ekle(t,-16)}]}),
+    mk({esasNo:"ÖRNEK 2026/445", adm:"2026/1645", mahkeme:"1. Aile Mahkemesi", gelis:ekle(t,-15), istem:ekle(t,2), durusma:ekle(t,30), durum:"Rapor yazılıyor",
+      taraflar:[{rol:"Davacı",ad:"Elif Örnek",tel:"0555 000 00 06",durum:"Görüşüldü"},{rol:"Davalı",ad:"Can Örnek",tel:"0555 000 00 07",durum:"Görüşüldü"}]}),
+    mk({esasNo:"ÖRNEK 2026/460", adm:"2026/1660", mahkeme:"2. Aile Mahkemesi", gelis:ekle(t,-3), istem:ekle(t,27), durusma:null, durum:"Yeni geldi",
+      taraflar:[{rol:"Davacı",ad:"",tel:"",durum:"Ulaşılmadı"},{rol:"Davalı",ad:"",tel:"",durum:"Ulaşılmadı"}]}),
+    mk({esasNo:"ÖRNEK 2026/350", adm:"2026/1550", mahkeme:"1. Aile Mahkemesi", gelis:ekle(t,-50), istem:ekle(t,-8), durusma:ekle(t,20), durum:"Rapor yüklendi", yuklendi:ekle(t,-9),
+      taraflar:[{rol:"Davacı",ad:"Selin Örnek",tel:"",durum:"Görüşüldü"},{rol:"Davalı",ad:"Kerem Örnek",tel:"",durum:"Görüşüldü"}]})
+  );
+  save(); tab = "dosyalar"; render(); toast("Örnek dosyalar eklendi");
+}
+
+/* ---------- giriş şifresi ---------- */
+function pinH(p){ let h = 0x811c9dc5; for(const c of "melly:"+p){ h ^= c.charCodeAt(0); h = Math.imul(h,16777619)>>>0; } return h.toString(16); }
+let girilen = "", kilitli = false, gizlenme = 0, pinMod = "gir", ilkPin = "";
+function kilitle(){
+  kilitli = true; girilen = "";
+  if(!S.ayar.pinH){ if(pinMod!=="kur2") pinMod = "kur1"; } else pinMod = "gir";
+  const baslik = pinMod==="kur1" ? "Melly için 4 haneli bir şifre belirle" : pinMod==="kur2" ? "Şifreyi tekrar gir" : "Giriş şifresi";
+  const K = document.getElementById("kilit");
+  K.innerHTML = '<h1>Mel<span>ly</span></h1><div class="sub" style="text-align:center">'+baslik+'</div><div class="noktalar" id="nk"><i></i><i></i><i></i><i></i></div><div class="err" id="kerr" style="min-height:18px"></div><div class="tus">'
+    + [1,2,3,4,5,6,7,8,9].map(n=>'<button onclick="pinTus(\''+n+'\')">'+n+'</button>').join("")
+    + '<button class="bos" aria-hidden="true"></button><button onclick="pinTus(\'0\')">0</button><button class="sil" onclick="pinSil()">Sil</button></div>';
+  K.style.display = "flex"; document.body.style.overflow = "hidden";
+}
+function noktalar(){ document.querySelectorAll("#nk i").forEach((e,i)=>e.classList.toggle("d", i < girilen.length)); }
+function pinSil(){ girilen = girilen.slice(0,-1); noktalar(); }
+function pinTus(n){
+  if(girilen.length >= 4) return;
+  girilen += n; noktalar(); document.getElementById("kerr").textContent = "";
+  if(girilen.length === 4){
+    setTimeout(()=>{
+      if(pinMod==="kur1"){ ilkPin = girilen; pinMod = "kur2"; kilitle(); return; }
+      if(pinMod==="kur2"){
+        if(girilen !== ilkPin){ pinMod = "kur1"; ilkPin = ""; kilitle(); document.getElementById("kerr").textContent = "Şifreler aynı değil, baştan girin"; return; }
+        S.ayar.pinH = pinH(girilen); save(); ilkPin = ""; pinMod = "gir"; toast("Şifre kaydedildi");
+      }
+      if(pinH(girilen) === S.ayar.pinH){
+        kilitli = false; girilen = ""; const K = document.getElementById("kilit"); K.style.display = "none"; K.innerHTML = "";
+        if(!document.querySelector(".sheet")) document.body.style.overflow = "";
+      } else {
+        girilen = ""; noktalar(); document.getElementById("kerr").textContent = "Şifre yanlış";
+        const nk = document.getElementById("nk"); nk.classList.remove("salla"); void nk.offsetWidth; nk.classList.add("salla");
+      }
+    }, 120);
+  }
+}
+document.addEventListener("keydown", e=>{ if(!kilitli) return; if(/^[0-9]$/.test(e.key)) pinTus(e.key); else if(e.key==="Backspace") pinSil(); });
+document.addEventListener("visibilitychange", ()=>{
+  if(document.hidden) gizlenme = Date.now();
+  else if(!kilitli && gizlenme && Date.now()-gizlenme > 120000) kilitle();
+});
+function pinDegistir(){
+  let x = '<label class="f" style="margin-top:0">Mevcut şifre</label><input id="p0" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><label class="f">Yeni şifre (4 rakam)</label><input id="p1" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><label class="f">Yeni şifre tekrar</label><input id="p2" type="password" inputmode="numeric" maxlength="4" autocomplete="off"><div id="perr" class="err"></div><div style="height:12px"></div><button class="btn p w" onclick="pinKaydet()">Şifreyi kaydet</button>';
+  sheet("Şifreyi değiştir", x, "pin");
+}
+function pinKaydet(){
+  const a = document.getElementById("p0").value, b = document.getElementById("p1").value, c = document.getElementById("p2").value, e = document.getElementById("perr");
+  if(S.ayar.pinH && pinH(a) !== S.ayar.pinH){ e.textContent = "Mevcut şifre yanlış."; return; }
+  if(!/^\d{4}$/.test(b)){ e.textContent = "Yeni şifre 4 rakam olmalı."; return; }
+  if(b !== c){ e.textContent = "Yeni şifreler aynı değil."; return; }
+  S.ayar.pinH = pinH(b); save(); kapatSheet("pin"); toast("Şifre değiştirildi");
+}
+
+/* ---------- başlat ---------- */
+render();
+kilitle();
+try{ if("serviceWorker" in navigator && location.protocol==="https:" && !/claude/.test(location.hostname)) navigator.serviceWorker.register("sw.js").catch(()=>{}); }catch(e){}
+</script>
+</body>
+</html>
