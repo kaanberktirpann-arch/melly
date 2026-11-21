@@ -154,7 +154,7 @@ a{color:var(--acc)}
 
 <script>
 "use strict";
-const VERSION = "0.6";
+const VERSION = "0.7";
 const KEY = "melly_veri_v1";
 
 const DURUMLAR = ["Yeni geldi","Taraflara ulaşılıyor","Randevu verildi","Görüşmeler sürüyor","Tebligat bekleniyor","Kurumdan belge bekleniyor","Rapor yazılıyor","Rapor yüklendi"];
@@ -475,7 +475,7 @@ function openFile(id){
 
   x += '<h3>Taraflar</h3>';
   (f.taraflar||[]).forEach((p,i)=>{
-    x += '<div class="card"><div class="ftop"><b>'+esc(etk(p))+(p.ad?' - '+esc(p.ad):'')+'</b></div>';
+    x += '<div class="card"><div class="ftop"><b>'+esc(etk(p))+(p.ad?' - '+esc(p.ad):'')+'</b>'+(p.kim?'<span class="bd a" style="margin:0">'+esc(p.kim)+'</span>':'')+'</div>';
     if(p.tel) x += '<div class="sub"><a href="tel:'+esc(p.tel.replace(/\s/g,""))+'">'+esc(p.tel)+'</a></div>';
     x += '<label class="f">Durum</label><select onchange="tarafDegis(\''+f.id+'\','+i+',\'durum\',this.value)">'+TARAF_DURUM.map(d=>'<option '+(d===p.durum?'selected':'')+'>'+d+'</option>').join("")+'</select>';
     if(p.durum==="Tebligat çıkarıldı") x += '<label class="f">Tebligat çıkarılma tarihi</label><input type="date" value="'+esc(p.tebligat||"")+'" onchange="tarafDegis(\''+f.id+'\','+i+',\'tebligat\',this.value)">';
@@ -549,7 +549,7 @@ function openEdit(id){
   x += '<label class="f">Duruşma tarihi</label><input type="date" name="durusma" value="'+esc(f?f.durusma||"":"")+'"><div class="sub">Duruşma tarihinden 7 gün önce kesin son yükleme tarihi olarak hesaplanır.</div>';
   x += '<label class="f" style="display:flex;align-items:center;color:var(--tx)"><input type="checkbox" name="yabanci" '+(f&&f.yabanci?'checked':'')+'>Yabancı uyruklu taraf var (tercüman gerekli)</label><input name="dil" value="'+esc(f?f.dil||"":"")+'" placeholder="Dil (ör. Arapça, Rusça)">';
   x += '<h3>Taraflar</h3>';
-  T.forEach((p,i)=>{ x += '<label class="f">'+(i===0?'Davacı':'Davalı')+'</label><input name="ad'+i+'" value="'+esc(p.ad||"")+'" placeholder="Ad soyad"><div style="height:6px"></div><input name="tel'+i+'" value="'+esc(p.tel||"")+'" inputmode="tel" placeholder="Telefon">'; });
+  T.forEach((p,i)=>{ x += '<label class="f">'+(i===0?'Davacı':'Davalı')+'</label><select name="kim'+i+'" style="margin-bottom:6px">'+[["","Anne / baba seçilmedi"],["Anne","Anne"],["Baba","Baba"],["Diğer","Diğer"]].map(o=>'<option value="'+o[0]+'" '+((p.kim||"")===o[0]?'selected':'')+'>'+o[1]+'</option>').join("")+'</select><input name="ad'+i+'" value="'+esc(p.ad||"")+'" placeholder="Ad soyad"><div style="height:6px"></div><input name="tel'+i+'" value="'+esc(p.tel||"")+'" inputmode="tel" placeholder="Telefon">'; });
   if(!f) x += '<label class="f">Notlar</label><textarea name="notlar"></textarea>';
   x += '<div id="eerr" class="err"></div><div style="height:14px"></div><button class="btn p w" type="submit">'+(f?'Kaydet':'Dosyayı ekle')+'</button></form>';
   sheet(f?"Bilgileri düzenle":"Yeni dosya", x, "edit");
@@ -573,7 +573,7 @@ function kaydet(id){
   }
   f.esasNo = v("esasNo"); f.adm = v("adm"); f.mahkeme = v("mahkeme"); f.gelis = v("gelis"); f.istem = v("istem"); f.durusma = v("durusma") || null;
   f.yabanci = E["yabanci"].checked; f.dil = v("dil");
-  f.taraflar.forEach((p,i)=>{ p.ad = v("ad"+i); p.tel = v("tel"+i); p.rol = i===0?"Davacı":"Davalı" });
+  f.taraflar.forEach((p,i)=>{ p.ad = v("ad"+i); p.tel = v("tel"+i); p.rol = i===0?"Davacı":"Davalı"; p.kim = v("kim"+i); });
   save(); kapatSheet("edit"); render();
   if(id && document.getElementById("detay")) openFile(id);
   toast(id ? "Kaydedildi" : "Dosya eklendi");
@@ -631,7 +631,7 @@ function randevuVer(id,i,gun,h){
 function sablon(sid){ const s = SABLONLAR.find(x=>x.id===sid); return (S.ayar.sablonlar && S.ayar.sablonlar[sid]) || s.metin; }
 function doldur(metin, f, p, b){
   const r = p && p.randevu;
-  const M = {ad:p?(p.ad||"…"):"", rol:p?etk(p):"", esasNo:f.esasNo, adm:f.adm||"", mahkeme:f.mahkeme||"", tarih:r?tf(r.tarih):"…", gun:r?gunAd(r.tarih):"", saat:r?saatStr(r.saat):"…",
+  const M = {ad:p?(p.ad||"…"):"", rol:p?etk(p):"", kim:p?(p.kim||""):"", esasNo:f.esasNo, adm:f.adm||"", mahkeme:f.mahkeme||"", tarih:r?tf(r.tarih):"…", gun:r?gunAd(r.tarih):"", saat:r?saatStr(r.saat):"…",
     adres:S.ayar.adres||"[adres - Ayarlar'dan girin]", unvan:S.ayar.unvan||"[ad soyad, unvan - Ayarlar'dan girin]", telefonum:S.ayar.telefonum||"[telefon - Ayarlar'dan girin]",
     kurum:b?b.kurum:"[kurum adı]", tebligat:p&&p.tebligat?tf(p.tebligat):"…", bugun:tf(bugun())};
   return metin.replace(/\{(\w+)\}/g,(m,k)=> k in M ? M[k] : m);
@@ -664,7 +664,7 @@ function kopyala(){
 }
 function sablonDuzenle(sid){
   const s = SABLONLAR.find(x=>x.id===sid);
-  let x = '<div class="sub">Süslü parantez içindeki alanlar otomatik dolar: {ad} {rol} {esasNo} {adm} {mahkeme} {tarih} {gun} {saat} {adres} {unvan} {telefonum} {kurum} {tebligat} {bugun}</div><textarea id="st" style="min-height:280px;margin-top:8px">'+esc(sablon(sid))+'</textarea><div style="height:10px"></div><button class="btn p w" onclick="S.ayar.sablonlar[\''+sid+'\']=document.getElementById(\'st\').value;save();kapatSheet(\'sab\');toast(\'Şablon kaydedildi\')">Kaydet</button><div style="height:8px"></div><button class="btn w" onclick="delete S.ayar.sablonlar[\''+sid+'\'];save();kapatSheet(\'sab\');toast(\'Varsayılana döndü\')">Varsayılana döndür</button>';
+  let x = '<div class="sub">Süslü parantez içindeki alanlar otomatik dolar: {ad} {rol} {kim} {esasNo} {adm} {mahkeme} {tarih} {gun} {saat} {adres} {unvan} {telefonum} {kurum} {tebligat} {bugun}</div><textarea id="st" style="min-height:280px;margin-top:8px">'+esc(sablon(sid))+'</textarea><div style="height:10px"></div><button class="btn p w" onclick="S.ayar.sablonlar[\''+sid+'\']=document.getElementById(\'st\').value;save();kapatSheet(\'sab\');toast(\'Şablon kaydedildi\')">Kaydet</button><div style="height:8px"></div><button class="btn w" onclick="delete S.ayar.sablonlar[\''+sid+'\'];save();kapatSheet(\'sab\');toast(\'Varsayılana döndü\')">Varsayılana döndür</button>';
   sheet(esc(s.ad), x, "sab");
 }
 

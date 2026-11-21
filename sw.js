@@ -1,6 +1,6 @@
 // Melly - çevrimdışı çalışma için önbellek. Bilgi göndermez; yalnızca uygulama dosyalarını saklar.
 // Yeni sürüm yayınlanınca SURUM değerini artırın.
-const SURUM = "melly-0.6";
+const SURUM = "melly-0.7";
 const DOSYALAR = ["./", "./index.html", "./manifest.webmanifest", "./icon-180.png", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {
