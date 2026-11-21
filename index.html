@@ -154,7 +154,7 @@ a{color:var(--acc)}
 
 <script>
 "use strict";
-const VERSION = "0.7";
+const VERSION = "0.8";
 const KEY = "melly_veri_v1";
 
 const DURUMLAR = ["Yeni geldi","Taraflara ulaşılıyor","Randevu verildi","Görüşmeler sürüyor","Tebligat bekleniyor","Kurumdan belge bekleniyor","Rapor yazılıyor","Rapor yüklendi"];
@@ -468,6 +468,7 @@ function openFile(id){
   if(f.durusma) x += '<div class="kv"><span>Kesin son yükleme</span><b class="c-cokacil">'+tf(ekle(f.durusma,-7))+'</b></div>';
   if(h) x += '<div style="margin-top:6px;font-weight:600" class="c-'+h.lv+'">'+hedefAciklama(h)+' · '+kalanYazi(h)+'</div>';
   if(f.yuklendi) x += '<div style="margin-top:6px;font-weight:600" class="c-yesil">Rapor '+tf(f.yuklendi)+' tarihinde yüklendi</div>';
+  if(!f.yuklendi && ((f.istem && f.istem>=t) || (f.durusma && ekle(f.durusma,-7)>=t))) x += '<button class="btn s w" style="margin-top:8px" onclick="sonTarihTakvim(\''+f.id+'\')">Son tarihleri takvime ekle (hatırlatmalı)</button>';
   if(f.yabanci) x += '<span class="bd">Yabancı uyruklu · tercüman'+(f.dil?': '+esc(f.dil):'')+'</span>';
   x += '</div>';
   if(tk.length) x += '<div class="banner r"><b>Takip et:</b><br>'+tk.map(k=>esc(k.yazi)+' <button class="btn s" onclick="event.stopPropagation();takipEdildi(\''+f.id+'\',\''+k.tip+'\','+k.i+')">Takip edildi</button>').join("<br>")+'</div>';
@@ -481,7 +482,7 @@ function openFile(id){
     if(p.durum==="Tebligat çıkarıldı") x += '<label class="f">Tebligat çıkarılma tarihi</label><input type="date" value="'+esc(p.tebligat||"")+'" onchange="tarafDegis(\''+f.id+'\','+i+',\'tebligat\',this.value)">';
     if(p.randevu){
       const gec = p.randevu.tarih < t;
-      x += '<div style="margin-top:10px" class="banner '+(gec?'':'a')+'">Randevu: <b>'+tf(p.randevu.tarih)+' '+gunAd(p.randevu.tarih)+' '+saatStr(p.randevu.saat)+'</b>'+(gec&&p.durum!=="Görüşüldü"?'<br>Randevu tarihi geçti. Görüşme yapıldıysa durumu "Görüşüldü" yapın.':'')+'<br><div class="row2" style="margin-top:6px"><button class="btn s" onclick="openSlot(\''+f.id+'\','+i+')">Değiştir</button><button class="btn s" onclick="randevuSil(\''+f.id+'\','+i+')">Kaldır</button><button class="btn s" onclick="openMetin(\''+f.id+'\',\'randevu\','+i+')">Mesaj</button></div></div>';
+      x += '<div style="margin-top:10px" class="banner '+(gec?'':'a')+'">Randevu: <b>'+tf(p.randevu.tarih)+' '+gunAd(p.randevu.tarih)+' '+saatStr(p.randevu.saat)+'</b>'+(gec&&p.durum!=="Görüşüldü"?'<br>Randevu tarihi geçti. Görüşme yapıldıysa durumu "Görüşüldü" yapın.':'')+'<br><div class="row2" style="margin-top:6px"><button class="btn s" onclick="openSlot(\''+f.id+'\','+i+')">Değiştir</button><button class="btn s" onclick="randevuSil(\''+f.id+'\','+i+')">Kaldır</button><button class="btn s" onclick="openMetin(\''+f.id+'\',\'randevu\','+i+')">Mesaj</button></div>'+(gec?'':'<button class="btn s w" style="margin-top:6px" onclick="randevuTakvim(\''+f.id+'\','+i+')">Takvime ekle (hatırlatmalı)</button>')+'</div>';
     } else x += '<div style="margin-top:10px"><button class="btn w" onclick="openSlot(\''+f.id+'\','+i+')">Randevu ver</button></div>';
     x += '</div>';
   });
@@ -625,6 +626,60 @@ function randevuVer(id,i,gun,h){
     toast("Randevu kaydedildi");
     openMetin(id,"randevu",i);
   });
+}
+
+/* ---------- iPhone takvimine ekleme (.ics) ---------- */
+function icsZaman(d,h){ const x = pd(d); x.setHours(h,0,0,0); return x.toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,""); }
+function icsKac(v){ return String(v==null?"":v).replace(/\\/g,"\\\\").replace(/;/g,"\\;").replace(/,/g,"\\,").replace(/\r?\n/g,"\\n"); }
+function icsOlustur(olaylar){
+  const damga = new Date().toISOString().replace(/[-:]/g,"").replace(/\.\d{3}/,"");
+  const L = ["BEGIN:VCALENDAR","VERSION:2.0","PRODID:-//Melly//TR","CALSCALE:GREGORIAN","METHOD:PUBLISH"];
+  olaylar.forEach(o=>{
+    L.push("BEGIN:VEVENT","UID:"+o.uid+"@melly","DTSTAMP:"+damga);
+    if(o.gun){ L.push("DTSTART;VALUE=DATE:"+o.gun.replace(/-/g,""), "DTEND;VALUE=DATE:"+ekle(o.gun,1).replace(/-/g,"")); }
+    else { L.push("DTSTART:"+icsZaman(o.tarih,o.saat), "DTEND:"+icsZaman(o.tarih,o.saat+1)); }
+    L.push("SUMMARY:"+icsKac(o.baslik));
+    if(o.aciklama) L.push("DESCRIPTION:"+icsKac(o.aciklama));
+    if(o.yer) L.push("LOCATION:"+icsKac(o.yer));
+    (o.alarmlar||[]).forEach(a=>L.push("BEGIN:VALARM","ACTION:DISPLAY","DESCRIPTION:"+icsKac(o.baslik),"TRIGGER:"+a,"END:VALARM"));
+    L.push("END:VEVENT");
+  });
+  L.push("END:VCALENDAR");
+  return L.join("\r\n")+"\r\n";
+}
+function randevuTakvim(id,i){
+  const f = bul(id), p = f.taraflar[i], r = p.randevu; if(!r) return;
+  const ics = icsOlustur([{uid:"r-"+f.id+"-"+i+"-"+r.tarih+"-"+r.saat, tarih:r.tarih, saat:r.saat,
+    baslik:"Görüşme: "+f.esasNo+" "+etk(p), aciklama:"Melly randevusu"+(f.adm?" · ADM "+f.adm:""), yer:S.ayar.adres||"",
+    alarmlar:["-P3D","-PT1H"]}]);
+  takvimSayfasi(ics, "Melly-randevu-"+r.tarih+".ics", "<b>"+esc(f.esasNo)+" "+esc(etk(p))+"</b> görüşmesi: "+tf(r.tarih)+" "+saatStr(r.saat)+"<br>Hatırlatma: <b>3 gün önce</b> ve <b>1 saat önce</b>.");
+}
+function sonTarihTakvim(id){
+  const f = bul(id), t = bugun(), O = [], satir = [];
+  if(f.istem && f.istem >= t){ O.push({uid:"i-"+f.id+"-"+f.istem, gun:f.istem, baslik:"İstem tarihi: "+f.esasNo, aciklama:"Melly"+(f.adm?" · ADM "+f.adm:""), alarmlar:["-P2DT15H","PT9H"]}); satir.push("İstem tarihi "+tf(f.istem)+" (3 gün önce ve o gün sabah 09:00)"); }
+  if(f.durusma){ const k = ekle(f.durusma,-7); if(k >= t){ O.push({uid:"k-"+f.id+"-"+k, gun:k, baslik:"KESİN SON YÜKLEME: "+f.esasNo, aciklama:"Duruşma "+tf(f.durusma)+" · Melly"+(f.adm?" · ADM "+f.adm:""), alarmlar:["-P9DT15H","-P2DT15H","PT9H"]}); satir.push("Kesin son yükleme "+tf(k)+" (10 gün önce, 3 gün önce ve o gün sabah 09:00)"); } }
+  if(!O.length){ toast("Eklenecek ileri tarih yok"); return; }
+  takvimSayfasi(icsOlustur(O), "Melly-sontarih-"+f.esasNo.replace(/[^0-9A-Za-z]+/g,"-")+".ics", "<b>"+esc(f.esasNo)+"</b><br>"+satir.map(esc).join("<br>"));
+}
+function takvimSayfasi(ics, ad, bilgi){
+  window.__ics = {ics, ad};
+  const veri = "data:text/calendar;charset=utf-8,"+encodeURIComponent(ics);
+  let x = '<div class="card">'+bilgi+'</div>';
+  x += '<a class="btn p w" style="display:block;text-align:center;text-decoration:none" href="'+veri+'" target="_blank" rel="noopener">Takvime ekle</a>';
+  x += '<div class="sub" style="margin:8px 0 14px">Açılan ekranda <b>"Ekle"</b> veya <b>"Tümünü Ekle"</b> deyin. Takvimde dosya numarası görünür, kişi adları yazılmaz.</div>';
+  x += '<button class="btn w" onclick="icsPaylas()">Olmadıysa: Paylaş ile aç</button>';
+  x += '<div class="sub" style="margin-top:8px">Paylaş ekranında <b>Takvim</b> uygulamasını seçin.</div>';
+  x += '<div class="sub" style="margin-top:14px">Not: Randevu veya tarih Melly\'de değişirse takvimdeki eski kaydı silip yeniden ekleyin.</div>';
+  sheet("Takvime ekle", x, "takvim");
+}
+async function icsPaylas(){
+  const d = window.__ics; if(!d) return;
+  const dosya = new File([d.ics], d.ad, {type:"text/calendar"});
+  try{
+    if(navigator.canShare && navigator.canShare({files:[dosya]})){ await navigator.share({files:[dosya], title:d.ad}); return; }
+  }catch(e){ if(e && e.name==="AbortError") return; }
+  try{ const u = URL.createObjectURL(dosya); const a = document.createElement("a"); a.href = u; a.download = d.ad; document.body.appendChild(a); a.click(); a.remove(); setTimeout(()=>URL.revokeObjectURL(u),4000); }
+  catch(e){ toast("Bu cihazda takvim dosyası açılamadı"); }
 }
 
 /* ---------- hazır metinler ---------- */
